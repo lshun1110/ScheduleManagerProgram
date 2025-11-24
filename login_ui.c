@@ -46,24 +46,24 @@ void LoginUi_UpdateFields(const wchar_t* id, const wchar_t* pw, LoginField curre
     goto_xy(82, 15);
     if (id[0] == L'\0' && currentField != FIELD_ID)
     {
-        wprintf(L"%-21ls", L"아이디");
+        wprintf(L"%-19ls", L"아이디");
     }
     else
     {
-        wprintf(L"%-21ls", id);
+        wprintf(L"%-19ls", id);
     }
 
     // PW 필드 업데이트
     goto_xy(82, 18);
     if (pw[0] == L'\0' && currentField != FIELD_PW)
     {
-        wprintf(L"%-21ls", L"비밀번호");
+        wprintf(L"%-17ls", L"비밀번호");
     }
     else
     {
         if (showPassword)
         {
-            wprintf(L"%-21ls", pw);
+            wprintf(L"%-17ls", pw);
         }
         else
         {

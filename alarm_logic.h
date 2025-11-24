@@ -17,5 +17,6 @@ int AlarmLogic_LoadAll(Alarm* buf, int max_count);
  * 반환값 : 성공(1), 실패(0)
  */
 int AlarmLogic_Add(const Alarm* alarm);
+int AlarmLogic_Delete(int alarm_id);
 
 #endif // ALARM_LOGIC_H

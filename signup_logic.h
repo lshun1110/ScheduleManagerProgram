@@ -15,4 +15,11 @@
  */
 int Signup_CreateUser(const wchar_t* id, const wchar_t* pw, const wchar_t* name);
 
+/*
+ * Checks whether the given user ID can be used for signup.
+ * Returns 1 if the ID is non-empty and not used by any non-deleted
+ * user in users.txt, otherwise returns 0.
+ */
+int Signup_CheckDuplicateId(const wchar_t* id);
+
 #endif // SIGNUP_LOGIC_H

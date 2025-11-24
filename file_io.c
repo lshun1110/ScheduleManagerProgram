@@ -42,7 +42,7 @@ int FileIO_AddUser(const User* user)
     FILE* fp = _wfopen(L"users.txt", L"a, ccs=UTF-16LE");
     if (!fp) return 0;
 
-    // 공백 1칸 기준 4필드
+    // 필드 사이: 공백 한 칸 기준
     fwprintf(fp, L"%ls %ls %ls %d\n",
         user->user_id,
         user->password,
@@ -53,44 +53,56 @@ int FileIO_AddUser(const User* user)
     return 1;
 }
 
-int FileIO_UpdateUser(const User* user) {
+int FileIO_UpdateUser(const User* user)
+{
     User users[100];
     int count = FileIO_LoadUsers(users, 100);
-    
+
     for (int i = 0; i < count; i++) {
         if (wcscmp(users[i].user_id, user->user_id) == 0) {
             users[i] = *user;
             break;
         }
     }
-    
+
     FILE* fp = _wfopen(L"users.txt", L"w, ccs=UTF-16LE");
     if (!fp) return 0;
+
     for (int i = 0; i < count; i++) {
-        fwprintf(fp, L"%ls\t%ls\t%ls\t%d\n",
-                 users[i].user_id, users[i].password, users[i].name, users[i].is_deleted);
+        fwprintf(fp, L"%ls %ls %ls %d\n",
+            users[i].user_id,
+            users[i].password,
+            users[i].name,
+            users[i].is_deleted);
     }
+
     fclose(fp);
     return 1;
 }
 
-int FileIO_DeleteUser(const wchar_t* user_id) {
+int FileIO_DeleteUser(const wchar_t* user_id)
+{
     User users[100];
     int count = FileIO_LoadUsers(users, 100);
-    
+
     for (int i = 0; i < count; i++) {
         if (wcscmp(users[i].user_id, user_id) == 0) {
             users[i].is_deleted = 1;
             break;
         }
     }
-    
+
     FILE* fp = _wfopen(L"users.txt", L"w, ccs=UTF-16LE");
     if (!fp) return 0;
+
     for (int i = 0; i < count; i++) {
-        fwprintf(fp, L"%ls\t%ls\t%ls\t%d\n",
-                 users[i].user_id, users[i].password, users[i].name, users[i].is_deleted);
+        fwprintf(fp, L"%ls %ls %ls %d\n",
+            users[i].user_id,
+            users[i].password,
+            users[i].name,
+            users[i].is_deleted);
     }
+
     fclose(fp);
     return 1;
 }

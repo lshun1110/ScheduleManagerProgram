@@ -10,7 +10,7 @@
 extern User g_current_user;
 
 static void UpdateSignupFields(const wchar_t* su_name, const wchar_t* su_id, const wchar_t* su_pw,
-                               int su_currentField, int su_showPassword, int su_lastFail)
+    int su_currentField, int su_showPassword, int su_lastFail)
 {
     goto_xy(47, 10);
     wprintf(L"%-21ls", (su_name[0] == L'\0' && su_currentField != 0) ? L"Name" : su_name);
@@ -19,46 +19,53 @@ static void UpdateSignupFields(const wchar_t* su_name, const wchar_t* su_id, con
     goto_xy(47, 18);
     if (su_pw[0] == L'\0' && su_currentField != 2) {
         wprintf(L"%-21ls", L"Password");
-    } else if (su_showPassword) {
+    }
+    else if (su_showPassword) {
         wprintf(L"%-21ls", su_pw);
-    } else {
+    }
+    else {
         size_t len = wcslen(su_pw);
         if (len > 21) len = 21;
         for (size_t i = 0; i < len; ++i) wprintf(L"*");
         for (size_t i = len; i < 21; ++i) wprintf(L" ");
     }
+
     goto_xy(71, 18);
     wprintf(su_showPassword ? L"[X] view" : L"[ ] view");
     goto_xy(45, 23);
-    wprintf(su_lastFail ? L"회원가입 실패: 중복 ID 또는 빈 입력.            " : L"                                                ");
+    wprintf(su_lastFail ? L"회원가입 실패 : 중복 ID 또는 잘못된 입력입니다.            "
+        : L"                                                ");
 }
 
 SceneState Login_Loop(void)
 {
     wchar_t id[32] = L"", pw[32] = L"";
-    LoginField currentField = FIELD_ID;
+    // 시작 시 아무 입력칸도 선택되지 않도록 LOGIN 버튼 상태로 둠
+    LoginField currentField = FIELD_LOGIN;
     int showPassword = 0, lastLoginFailed = 0;
     DWORD failTick = 0;
     LoginView view = LOGIN_VIEW_LOGIN;
     int login_screen_drawn = 0;
 
     wchar_t su_name[32] = L"", su_id[32] = L"", su_pw[32] = L"";
-    int su_currentField = 0, su_showPassword = 0, su_lastFail = 0;
+    // 회원가입 화면도 처음엔 포커스 없음(-1)
+    int su_currentField = -1, su_showPassword = 0, su_lastFail = 0;
     DWORD su_failTick = 0;
     int su_screen_drawn = 0;
 
-    UiRect rect_id_box = {80, 14, 25, 3};
-    UiRect rect_pw_box = {80, 17, 25, 3};
-    UiRect rect_view_box = {106, 18, 8, 1};
-    UiRect rect_btn_login = {88, 21, 11, 1};
-    UiRect rect_btn_signup = {87, 23, 13, 1};
+    UiRect rect_id_box = { 80, 14, 25, 3 };
+    UiRect rect_pw_box = { 80, 17, 25, 3 };
+    UiRect rect_view_box = { 106, 18, 8, 1 };
+    UiRect rect_btn_login = { 88, 21, 11, 1 };
+    UiRect rect_btn_signup = { 87, 23, 13, 1 };
 
-    UiRect su_rect_name_box = {45, 9, 25, 3};
-    UiRect su_rect_id_box = {45, 13, 25, 3};
-    UiRect su_rect_pw_box = {45, 17, 25, 3};
-    UiRect su_rect_view_box = {71, 18, 8, 1};
-    UiRect su_rect_btn_back = {10, 1, 8, 1};
-    UiRect su_rect_btn_signup = {52, 21, 20, 1};
+    UiRect su_rect_name_box = { 45, 9, 25, 3 };
+    UiRect su_rect_id_box = { 45, 13, 25, 3 };
+    UiRect su_rect_pw_box = { 45, 17, 25, 3 };
+    UiRect su_rect_dup_box = { 71, 14, 12, 1 };   // [ 중복 확인 ] 버튼 영역
+    UiRect su_rect_view_box = { 71, 18, 8, 1 };   // [ ] view 버튼 영역
+    UiRect su_rect_btn_back = { 10, 1, 8, 1 };
+    UiRect su_rect_btn_signup = { 52, 21, 20, 1 };
 
     while (1)
     {
@@ -78,10 +85,12 @@ SceneState Login_Loop(void)
                 Ui_ClearScreen();
                 LoginUi_Draw(id, pw, currentField, showPassword, lastLoginFailed);
                 login_screen_drawn = 1;
-            } else {
+            }
+            else {
                 LoginUi_UpdateFields(id, pw, currentField, showPassword, lastLoginFailed);
             }
-        } else {
+        }
+        else {
             if (!su_screen_drawn) {
                 Ui_ClearScreen();
                 draw_signup_screen();
@@ -94,13 +103,16 @@ SceneState Login_Loop(void)
             if (currentField == FIELD_ID) {
                 goto_xy(82 + (int)wcslen(id), 15);
                 set_cursor_visibility(1);
-            } else if (currentField == FIELD_PW) {
+            }
+            else if (currentField == FIELD_PW) {
                 goto_xy(82 + (int)wcslen(pw), 18);
                 set_cursor_visibility(1);
-            } else {
+            }
+            else {
                 set_cursor_visibility(0);
             }
-        } else {
+        }
+        else {
             if (su_currentField == 0) { goto_xy(47 + (int)wcslen(su_name), 10); set_cursor_visibility(1); }
             else if (su_currentField == 1) { goto_xy(47 + (int)wcslen(su_id), 14); set_cursor_visibility(1); }
             else if (su_currentField == 2) { goto_xy(47 + (int)wcslen(su_pw), 18); set_cursor_visibility(1); }
@@ -112,7 +124,7 @@ SceneState Login_Loop(void)
 
         if (ev.type == UI_INPUT_MOUSE_LEFT) {
             int mx = ev.pos.x, my = ev.pos.y;
-            
+
             if (view == LOGIN_VIEW_LOGIN) {
                 if (Ui_PointInRect(&rect_id_box, mx, my)) currentField = FIELD_ID;
                 else if (Ui_PointInRect(&rect_pw_box, mx, my)) currentField = FIELD_PW;
@@ -124,17 +136,27 @@ SceneState Login_Loop(void)
                     }
                     lastLoginFailed = 1;
                     failTick = GetTickCount();
-                    currentField = FIELD_ID;
                 }
                 else if (Ui_PointInRect(&rect_btn_signup, mx, my)) {
                     view = LOGIN_VIEW_SIGNUP;
-                    su_currentField = 0;
+                    su_currentField = -1;   // 회원가입 화면 처음 진입 시 포커스 없음
                     login_screen_drawn = su_screen_drawn = 0;
                 }
-            } else {
+            }
+            else {
                 if (Ui_PointInRect(&su_rect_name_box, mx, my)) su_currentField = 0;
                 else if (Ui_PointInRect(&su_rect_id_box, mx, my)) su_currentField = 1;
                 else if (Ui_PointInRect(&su_rect_pw_box, mx, my)) su_currentField = 2;
+                else if (Ui_PointInRect(&su_rect_dup_box, mx, my)) {
+                    // ID 중복 확인 버튼
+                    if (Signup_CheckDuplicateId(su_id)) {
+                        su_lastFail = 0; // 사용 가능 → 실패 메시지 제거
+                    }
+                    else {
+                        su_lastFail = 1; // 중복/잘못된 ID → 실패 메시지 표시
+                        su_failTick = GetTickCount();
+                    }
+                }
                 else if (Ui_PointInRect(&su_rect_view_box, mx, my)) su_showPassword = !su_showPassword;
                 else if (Ui_PointInRect(&su_rect_btn_back, mx, my)) {
                     view = LOGIN_VIEW_LOGIN;
@@ -149,24 +171,25 @@ SceneState Login_Loop(void)
                         currentField = FIELD_ID;
                         su_name[0] = su_id[0] = su_pw[0] = L'\0';
                         login_screen_drawn = su_screen_drawn = 0;
-                    } else {
+                    }
+                    else {
                         su_lastFail = 1;
                         su_failTick = GetTickCount();
                     }
                 }
             }
-            continue;  // ← 이게 중요!
+            continue;
         }
 
         if (ev.type == UI_INPUT_KEY) {
             wchar_t ch = ev.key;
-            
-            if (ch == 27) {
+            if (ch == 27) { // ESC
                 if (view == LOGIN_VIEW_SIGNUP) {
                     view = LOGIN_VIEW_LOGIN;
                     currentField = FIELD_ID;
                     login_screen_drawn = su_screen_drawn = 0;
-                } else {
+                }
+                else {
                     set_cursor_visibility(0);
                     return SCENE_EXIT;
                 }
@@ -177,13 +200,14 @@ SceneState Login_Loop(void)
                 if (ch == L'\t') currentField = (LoginField)(((int)currentField + 1) % FIELD_COUNT);
                 else if (ch == L'\b') {
                     wchar_t* buf = (currentField == FIELD_ID) ? id : (currentField == FIELD_PW) ? pw : NULL;
-                    if (buf) { size_t len = wcslen(buf); if (len > 0) buf[len-1] = L'\0'; }
+                    if (buf) { size_t len = wcslen(buf); if (len > 0) buf[len - 1] = L'\0'; }
                 }
                 else if (ch == L'\r' || ch == L'\n') {
                     if (Login_Auth(id, pw, &g_current_user)) {
                         set_cursor_visibility(0);
                         return SCENE_CALENDAR;
                     }
+
                     lastLoginFailed = 1;
                     failTick = GetTickCount();
                 }
@@ -191,14 +215,18 @@ SceneState Login_Loop(void)
                     if (ch == L' ' && currentField == FIELD_VIEW) showPassword = !showPassword;
                     else {
                         wchar_t* buf = (currentField == FIELD_ID) ? id : (currentField == FIELD_PW) ? pw : NULL;
-                        if (buf) { size_t len = wcslen(buf); if (len < 31) { buf[len] = ch; buf[len+1] = L'\0'; } }
+                        if (buf) {
+                            size_t len = wcslen(buf);
+                            if (len < 31) { buf[len] = ch; buf[len + 1] = L'\0'; }
+                        }
                     }
                 }
-            } else {
+            }
+            else {
                 if (ch == L'\t') su_currentField = (su_currentField + 1) % 3;
                 else if (ch == L'\b') {
                     wchar_t* buf = (su_currentField == 0) ? su_name : (su_currentField == 1) ? su_id : su_pw;
-                    size_t len = wcslen(buf); if (len > 0) buf[len-1] = L'\0';
+                    size_t len = wcslen(buf); if (len > 0) buf[len - 1] = L'\0';
                 }
                 else if (ch == L'\r' || ch == L'\n') {
                     if (Signup_CreateUser(su_id, su_pw, su_name)) {
@@ -208,14 +236,15 @@ SceneState Login_Loop(void)
                         currentField = FIELD_ID;
                         su_name[0] = su_id[0] = su_pw[0] = L'\0';
                         login_screen_drawn = su_screen_drawn = 0;
-                    } else {
+                    }
+                    else {
                         su_lastFail = 1;
                         su_failTick = GetTickCount();
                     }
                 }
                 else if (iswprint(ch) || ch == L' ') {
                     wchar_t* buf = (su_currentField == 0) ? su_name : (su_currentField == 1) ? su_id : su_pw;
-                    size_t len = wcslen(buf); if (len < 31) { buf[len] = ch; buf[len+1] = L'\0'; }
+                    size_t len = wcslen(buf); if (len < 31) { buf[len] = ch; buf[len + 1] = L'\0'; }
                 }
             }
         }
