@@ -1,0 +1,5 @@
+common.h는 공통 헤더
+main은 main 함수만
+struct.h는 각 파일에 해당하는 구조체가 들어가 있다.
+ui_core.c ui와 관련된 공용 함수
+set_mode.c는 최초 1회만 실행되는 함수

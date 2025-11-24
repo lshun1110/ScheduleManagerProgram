@@ -1,0 +1,203 @@
+#include "schedule_logic.h"
+#include <stdio.h>
+#include <string.h>
+
+// 메모리 상의 일정 배열 (실제로는 파일에서 로드/저장)
+static Schedule g_schedules[512];
+static int g_schedule_count = 0;
+static int g_loaded = 0;
+
+int ScheduleLogic_LoadAll(Schedule* buf, int max_count)
+{
+    // 이미 로드되었으면 복사만
+    if (!g_loaded) 
+    {
+        // schedule.txt 파일 열기 (없으면 빈 상태로 시작)
+        FILE* fp = _wfopen(L"schedule.txt", L"r, ccs=UTF-16LE");
+        if (fp) 
+        {
+            wchar_t line[512];
+            while (g_schedule_count < 512 && fgetws(line, 512, fp)) 
+            {
+                Schedule s;
+                memset(&s, 0, sizeof(s));
+                
+                // 파싱: id, calendar_id, title, location, memo, start_date, end_date, is_all_day, repeat_type
+                int ret = swscanf(line, L"%d\t%d\t%63[^\t]\t%63[^\t]\t%255[^\t]\t%d-%d-%d %d:%d\t%d-%d-%d %d:%d\t%d\t%d\t%d", 
+                        &s.schedule_id, &s.calendar_id, 
+                        s.title, s.location, s.memo,
+                        &s.start_time.tm_year, &s.start_time.tm_mon, &s.start_time.tm_mday,
+                        &s.start_time.tm_hour, &s.start_time.tm_min,
+                        &s.end_time.tm_year, &s.end_time.tm_mon, &s.end_time.tm_mday,
+                        &s.end_time.tm_hour, &s.end_time.tm_min,
+                        &s.is_all_day, (int*)&s.repeat_type, &s.is_deleted);
+                
+                if (ret >= 6) 
+                {
+                    s.start_time.tm_year -= 1900;
+                    s.start_time.tm_mon -= 1;
+                    s.end_time.tm_year -= 1900;
+                    s.end_time.tm_mon -= 1;
+        // Trim single-space memo to empty
+        if ((s.memo[0] == L' ' && s.memo[1] == 0) || wcscmp(s.memo, L"(empty)") == 0) { s.memo[0] = 0; }
+        if (wcscmp(s.location, L"(empty)") == 0 ||
+            (s.location[0] == L' ' && s.location[1] == 0)) {
+            s.location[0] = 0;
+        }
+                    g_schedules[g_schedule_count++] = s;
+                }
+            }
+            fclose(fp);
+        }
+        g_loaded = 1;
+    }
+    
+    // 버퍼에 복사
+    if (buf) 
+    {
+        int toCopy = g_schedule_count < max_count ? g_schedule_count : max_count;
+        for (int i = 0; i < toCopy; ++i) 
+        {
+            buf[i] = g_schedules[i];
+        }
+        return toCopy;
+    }
+    
+    return g_schedule_count;
+}
+
+int ScheduleLogic_SaveAll(const Schedule* buf, int count)
+{
+    FILE* fp = _wfopen(L"schedule.txt", L"w, ccs=UTF-16LE");
+    if (!fp) return 0;
+    
+    for (int i = 0; i < count; ++i) 
+    {
+        const Schedule* s = &buf[i];
+        fwprintf(fp, L"%d\t%d\t%ls\t%ls\t%ls\t%04d-%02d-%02d %02d:%02d\t%04d-%02d-%02d %02d:%02d\t%d	%d	%d\n",
+                 s->schedule_id, s->calendar_id, 
+                 s->title, (s->location ? s->location : L"(empty)"), (s->memo[0] ? s->memo : L"(empty)"),
+                 s->start_time.tm_year + 1900, s->start_time.tm_mon + 1, s->start_time.tm_mday,
+                 s->start_time.tm_hour, s->start_time.tm_min,
+                 s->end_time.tm_year + 1900, s->end_time.tm_mon + 1, s->end_time.tm_mday,
+                 s->end_time.tm_hour, s->end_time.tm_min,
+                 s->is_all_day, s->repeat_type, s->is_deleted);
+    }
+    
+    fclose(fp);
+    return 1;
+}
+
+int ScheduleLogic_GetSchedulesForDate(const struct tm* date,
+                                      Schedule* out_buf,
+                                      int max_count)
+{
+    // 일정이 로드되지 않았으면 로드
+    if (!g_loaded) 
+    {
+        ScheduleLogic_LoadAll(NULL, 0);
+    }
+    
+    int count = 0;
+    for (int i = 0; i < g_schedule_count && count < max_count; ++i) 
+    {
+        const Schedule* s = &g_schedules[i];
+        
+        // 날짜 비교
+        if (s->start_time.tm_year == date->tm_year &&
+            s->start_time.tm_mon == date->tm_mon &&
+            s->start_time.tm_mday == date->tm_mday) 
+        {
+            out_buf[count++] = *s;
+        }
+    }
+    
+    return count;
+}
+
+int ScheduleLogic_Add(const Schedule* sched)
+{
+    if (!sched || g_schedule_count >= 512) 
+    {
+        return 0;
+    }
+    
+    // 로드되지 않았으면 로드
+    if (!g_loaded) 
+    {
+        ScheduleLogic_LoadAll(NULL, 0);
+    }
+    
+    // 새 ID 할당
+    Schedule s = *sched;
+    if (s.schedule_id < 0) 
+    {
+        int maxId = 0;
+        for (int i = 0; i < g_schedule_count; ++i) 
+        {
+            if (g_schedules[i].schedule_id > maxId) 
+            {
+                maxId = g_schedules[i].schedule_id;
+            }
+        }
+        s.schedule_id = maxId + 1;
+    }
+    
+    // 메모리에 추가
+    g_schedules[g_schedule_count++] = s;
+    
+    // 파일에 저장
+    ScheduleLogic_SaveAll(g_schedules, g_schedule_count);
+    
+    return 1;
+}
+
+int ScheduleLogic_Update(const Schedule* sched)
+{
+    if (!sched) return 0;
+    
+    if (!g_loaded) 
+    {
+        ScheduleLogic_LoadAll(NULL, 0);
+    }
+    
+    // ID로 찾아서 업데이트
+    for (int i = 0; i < g_schedule_count; ++i) 
+    {
+        if (g_schedules[i].schedule_id == sched->schedule_id) 
+        {
+            g_schedules[i] = *sched;
+            ScheduleLogic_SaveAll(g_schedules, g_schedule_count);
+            return 1;
+        }
+    }
+    
+    return 0;
+}
+
+int ScheduleLogic_Delete(int schedule_id)
+{
+    if (!g_loaded) 
+    {
+        ScheduleLogic_LoadAll(NULL, 0);
+    }
+    
+    // ID로 찾아서 삭제
+    for (int i = 0; i < g_schedule_count; ++i) 
+    {
+        if (g_schedules[i].schedule_id == schedule_id) 
+        {
+            // 배열에서 제거 (뒤 항목들을 앞으로 이동)
+            for (int j = i; j < g_schedule_count - 1; ++j) 
+            {
+                g_schedules[j] = g_schedules[j + 1];
+            }
+            g_schedule_count--;
+            
+            ScheduleLogic_SaveAll(g_schedules, g_schedule_count);
+            return 1;
+        }
+    }
+    
+    return 0;
+}
