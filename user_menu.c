@@ -11,13 +11,16 @@ UserMenuAction UserMenu_Show(int x, int y) {
     
     goto_xy(x + 2, y + 1);
     wprintf(L"회원정보 수정");
-    
+    goto_xy(x + 2, y + 2);
+    wprintf(L"              ");
     goto_xy(x + 2, y + 3);
     wprintf(L"공유 관리");
-    
+    goto_xy(x + 2, y + 4);
+    wprintf(L"              ");
     goto_xy(x + 2, y + 5);
     wprintf(L"회원 탈퇴");
-    
+    goto_xy(x + 1, y + 6);
+    wprintf(L"                  ");
     goto_xy(x + 2, y + 7);
     wprintf(L"(ESC: 닫기)");
     
