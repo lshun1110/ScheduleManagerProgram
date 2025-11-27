@@ -161,13 +161,13 @@
     <Text Include="users.txt">
       <Filter>헤더 파일</Filter>
     </Text>
-    <Text Include="shared_calendars.txt">
-      <Filter>헤더 파일</Filter>
-    </Text>
     <Text Include="schedule.txt">
       <Filter>헤더 파일</Filter>
     </Text>
     <Text Include="calendars.txt">
+      <Filter>헤더 파일</Filter>
+    </Text>
+    <Text Include="shared_calendars.txt">
       <Filter>헤더 파일</Filter>
     </Text>
   </ItemGroup>

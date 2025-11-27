@@ -13,24 +13,24 @@ extern User g_current_user;
 void Search_ShowDialog(void) {
     wchar_t search_query[64] = L"";
     int need_redraw = 1;
-    
+
     Schedule results[100];
     int result_count = 0;
     int searched = 0;
-    
-    UiRect rect_input = {25, 8, 60, 1};
-    UiRect rect_search = {88, 7, 12, 3};
-    
+
+    UiRect rect_input = { 25, 8, 60, 1 };
+    UiRect rect_search = { 88, 7, 12, 3 };
+
     while (1) {
         if (need_redraw) {
             Ui_ClearScreen();
             draw_box(10, 4, 100, 24);
-            goto_xy(1,1);
+            goto_xy(1, 1);
             wprintf(L"<- Back");
-            
+
             goto_xy(12, 5);
             wprintf(L"━━━━━━━━━━━━━━━━ 일정 검색 ━━━━━━━━━━━━━━━━");
-            
+
             // 검색창
             goto_xy(12, 7);
             wprintf(L"검색어:");
@@ -38,94 +38,84 @@ void Search_ShowDialog(void) {
             goto_xy(25, 8);
             if (search_query[0]) {
                 wprintf(L"%-58ls", search_query);
-            } else {
+            }
+            else {
                 SetColor(COLOR_WHITE - 8, COLOR_BLACK);
                 wprintf(L"제목 또는 메모로 검색...");
                 ResetColor();
             }
-            
+
             draw_box(86, 7, 14, 3);
             goto_xy(89, 8);
             wprintf(L"검 색");
-            
+
             // 검색 결과
             if (searched) {
                 goto_xy(12, 11);
                 wprintf(L"검색 결과: %d건", result_count);
-                
-                goto_xy(12, 12);
-                for (int i = 0; i < 85; i++) wprintf(L"─");
-                
-                int y = 14;
-                for (int i = 0; i < result_count && i < 10; i++) {
-                    // 캘린더 색상 표시
-                    Calendar calendars[32];
-                    int cal_count = CalMgr_GetAllCalendars(g_current_user.user_id, calendars, 32);
-                    int color = COLOR_WHITE;
-                    for (int j = 0; j < cal_count; j++) {
-                        if (calendars[j].calendar_id == results[i].calendar_id) {
-                            color = calendars[j].color;
-                            break;
-                        }
-                    }
-                    
-                    goto_xy(12, y);
-                    SetColor(color, COLOR_BLACK);
-                    wprintf(L"■");
-                    ResetColor();
-                    
-                    wprintf(L" %04d-%02d-%02d ",
-                            results[i].start_time.tm_year + 1900,
-                            results[i].start_time.tm_mon + 1,
-                            results[i].start_time.tm_mday);
-                    
-                    if (!results[i].is_all_day) {
-                        wprintf(L"%02d:%02d ",
-                                results[i].start_time.tm_hour,
-                                results[i].start_time.tm_min);
-                    }
-                    
-                    wprintf(L"%.40ls", results[i].title);
-                    
-                    y += 2;
+
+                int max_show = (result_count < 10) ? result_count : 10;
+                for (int i = 0; i < max_show; i++) {
+                    Schedule* s = &results[i];
+                    int row = 13 + i * 2;
+
+                    goto_xy(12, row);
+                    wprintf(L"[%d] ", s->schedule_id);
+
+                    // 날짜/시간
+                    goto_xy(18, row);
+                    wprintf(L"%04d-%02d-%02d %02d:%02d",
+                        s->start_time.tm_year + 1900,
+                        s->start_time.tm_mon + 1,
+                        s->start_time.tm_mday,
+                        s->start_time.tm_hour,
+                        s->start_time.tm_min);
+
+                    // 제목
+                    goto_xy(40, row);
+                    wprintf(L"%-20.20ls", s->title);
+
+                    // 캘린더 ID
+                    goto_xy(62, row);
+                    wprintf(L"(Cal:%d)", s->calendar_id);
                 }
-                
+
                 if (result_count > 10) {
-                    goto_xy(12, y);
+                    goto_xy(12, 13 + 10 * 2);
                     wprintf(L"외 %d건...", result_count - 10);
                 }
             }
-            
+            else {
+                goto_xy(12, 11);
+                wprintf(L"검색 결과가 없습니다. 검색어를 입력하고 [검 색] 버튼을 누르세요.");
+            }
+
             goto_xy(12, 26);
-            wprintf(L"ESC: 닫기");
-            
+            wprintf(L"[ ESC: 돌아가기 ]");
+
             need_redraw = 0;
         }
-        
-        // 커서 표시
-        if (search_query[0]) {
-            goto_xy(25 + (int)wcslen(search_query), 8);
-            set_cursor_visibility(1);
-        } else {
-            set_cursor_visibility(0);
-        }
-        
+
+        // ★ 여기부터 입력 처리 부분 ★
         UiInputEvent ev;
         Ui_WaitInput(&ev);
-        
+
         if (ev.type == UI_INPUT_MOUSE_LEFT) {
-            int mx = ev.pos.x, my = ev.pos.y;
-            // back button click
-            if (my == 1 && mx >= 1 && mx <= 7) {
+            int mx = ev.pos.x;
+            int my = ev.pos.y;
+
+            // Back
+            if (my == 1 && mx >= 1 && mx <= 8) {
                 set_cursor_visibility(0);
                 return;
             }
-            
+
             if (Ui_PointInRect(&rect_input, mx, my)) {
                 // 입력 필드 클릭
                 need_redraw = 1;
-            } else if (Ui_PointInRect(&rect_search, mx, my)) {
-                // 검색 실행
+            }
+            else if (Ui_PointInRect(&rect_search, mx, my)) {
+                // 검색 실행 (마우스로 버튼 클릭)
                 if (search_query[0] == L'\0') {
                     goto_xy(12, 26);
                     wprintf(L"! 검색어를 입력하세요!                    ");
@@ -133,36 +123,51 @@ void Search_ShowDialog(void) {
                     need_redraw = 1;
                     continue;
                 }
-                
-                // Load all schedules and perform search. Allocate dynamically to reduce stack usage
+
+                // 모든 일정 로드
                 Schedule* all_schedules = (Schedule*)malloc(sizeof(Schedule) * 1000);
                 int all_count = FileIO_LoadSchedules(all_schedules, 1000);
-                
+
+                // 현재 사용자 기준으로 접근 가능한 캘린더 목록 로드
+                Calendar user_cals[32];
+                int user_cal_count = CalMgr_GetAllCalendars(g_current_user.user_id, user_cals, 32);
+
                 result_count = 0;
                 for (int i = 0; i < all_count && result_count < 100; i++) {
-                    if (all_schedules[i].is_deleted) continue;
-                    
-                    // Search in title or memo
-                    if (wcsstr(all_schedules[i].title, search_query) != NULL ||
-                        wcsstr(all_schedules[i].memo, search_query) != NULL) {
-                        results[result_count++] = all_schedules[i];
+                    Schedule* s = &all_schedules[i];
+                    if (s->is_deleted) continue;
+
+                    // 이 일정의 calendar_id가 로그인 사용자의 캘린더/공유 캘린더인지 확인
+                    int owned = 0;
+                    for (int j = 0; j < user_cal_count; j++) {
+                        if (user_cals[j].calendar_id == s->calendar_id) {
+                            owned = 1;
+                            break;
+                        }
+                    }
+                    if (!owned) continue;
+
+                    // 제목 또는 메모에 검색어 포함 여부
+                    if (wcsstr(s->title, search_query) != NULL ||
+                        wcsstr(s->memo, search_query) != NULL) {
+                        results[result_count++] = *s;
                     }
                 }
-                
+
                 free(all_schedules);
                 searched = 1;
                 need_redraw = 1;
             }
-        } else if (ev.type == UI_INPUT_KEY) {
+        }
+        else if (ev.type == UI_INPUT_KEY) {
             wchar_t ch = ev.key;
-            
+
             if (ch == 27) { // ESC
                 set_cursor_visibility(0);
                 return;
             }
-            
-            if (ch == L'\r' || ch == L'\n') { // Enter
-                // 검색 실행
+
+            if (ch == L'\r' || ch == L'\n') { // Enter로 검색 실행
                 if (search_query[0] == L'\0') {
                     goto_xy(12, 26);
                     wprintf(L"! 검색어를 입력하세요!                    ");
@@ -170,27 +175,42 @@ void Search_ShowDialog(void) {
                     need_redraw = 1;
                     continue;
                 }
-                
-                // Load all schedules and perform search. Allocate dynamically to reduce stack usage
+
+                // 모든 일정 로드
                 Schedule* all_schedules = (Schedule*)malloc(sizeof(Schedule) * 1000);
                 int all_count = FileIO_LoadSchedules(all_schedules, 1000);
-                
+
+                // 현재 사용자 기준으로 접근 가능한 캘린더 목록 로드
+                Calendar user_cals[32];
+                int user_cal_count = CalMgr_GetAllCalendars(g_current_user.user_id, user_cals, 32);
+
                 result_count = 0;
                 for (int i = 0; i < all_count && result_count < 100; i++) {
-                    if (all_schedules[i].is_deleted) continue;
-                    
-                    // Search in title or memo
-                    if (wcsstr(all_schedules[i].title, search_query) != NULL ||
-                        wcsstr(all_schedules[i].memo, search_query) != NULL) {
-                        results[result_count++] = all_schedules[i];
+                    Schedule* s = &all_schedules[i];
+                    if (s->is_deleted) continue;
+
+                    // 이 일정의 calendar_id가 로그인 사용자의 캘린더/공유 캘린더인지 확인
+                    int owned = 0;
+                    for (int j = 0; j < user_cal_count; j++) {
+                        if (user_cals[j].calendar_id == s->calendar_id) {
+                            owned = 1;
+                            break;
+                        }
+                    }
+                    if (!owned) continue;
+
+                    // 제목 또는 메모에 검색어 포함 여부
+                    if (wcsstr(s->title, search_query) != NULL ||
+                        wcsstr(s->memo, search_query) != NULL) {
+                        results[result_count++] = *s;
                     }
                 }
-                
+
                 free(all_schedules);
                 searched = 1;
                 need_redraw = 1;
             }
-            
+
             if (ch == L'\b') {
                 size_t len = wcslen(search_query);
                 if (len > 0) {
@@ -198,7 +218,8 @@ void Search_ShowDialog(void) {
                     searched = 0;
                     need_redraw = 1;
                 }
-            } else if (iswprint(ch) || ch == L' ') {
+            }
+            else if (iswprint(ch) || ch == L' ') {
                 size_t len = wcslen(search_query);
                 if (len < 63) {
                     search_query[len] = ch;
