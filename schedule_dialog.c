@@ -51,7 +51,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     draw_box(23, 8, 70, 3);
     goto_xy(25, 9);
     if (title[0]) {
-        wprintf(L"%-66ls", title);
+        wprintf(L"%-50ls", title);
     } else if (focused != FIELD_TITLE) {
         SetColor(COLOR_WHITE - 8, COLOR_BLACK);
         wprintf(L"일정 제목을 입력하세요");
@@ -64,7 +64,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     draw_box(23, 11, 70, 3);
     goto_xy(25, 12);
     if (location[0]) {
-        wprintf(L"%-66ls", location);
+        wprintf(L"%-50ls", location);
     } else if (focused != FIELD_LOCATION) {
         SetColor(COLOR_WHITE - 8, COLOR_BLACK);
         wprintf(L"장소 (선택사항)");
@@ -131,7 +131,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     draw_box(23, 17, 70, 4);
     goto_xy(25, 18);
     if (memo[0]) {
-        wprintf(L"%-66ls", memo);
+        wprintf(L"%-50ls", memo);
     } else if (focused != FIELD_MEMO) {
         SetColor(COLOR_WHITE - 8, COLOR_BLACK);
         wprintf(L"메모 (선택사항)");

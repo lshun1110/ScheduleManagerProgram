@@ -86,9 +86,9 @@ int UserMenu_EditProfile(User* user) {
             draw_box(33, 15, 42, 3);
             goto_xy(35, 16);
             if (focused == 1) {
-                wprintf(L"%-38ls", new_name);
+                wprintf(L"%-28ls", new_name);
             } else {
-                wprintf(L"%-38ls", new_name);
+                wprintf(L"%-28ls", new_name);
             }
             
             draw_box(33, 19, 17, 3);

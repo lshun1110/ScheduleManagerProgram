@@ -59,8 +59,21 @@ void Stats_ShowMonthly(const struct tm* month) {
             month->tm_year + 1900, month->tm_mon + 1);
     
     // 캘린더 로드
+// 1) 우선 전체(내 + 공유) 캘린더를 가져온 뒤
+// 2) 그 중에서 "owner == 현재 사용자" 인 것만 통계 대상으로 사용
     Calendar calendars[32];
-    int cal_count = CalMgr_GetAllCalendars(g_current_user.user_id, calendars, 32);
+    Calendar all_calendars[32];
+
+    int all_count = CalMgr_GetAllCalendars(g_current_user.user_id,
+        all_calendars, 32);
+
+    int cal_count = 0;
+    for (int i = 0; i < all_count && cal_count < 32; i++) {
+        // owner가 나(g_current_user.user_id)인 캘린더만 통계에 포함
+        if (wcscmp(all_calendars[i].user_id, g_current_user.user_id) == 0) {
+            calendars[cal_count++] = all_calendars[i];
+        }
+    }
     
     // Dynamically allocate arrays for schedules to avoid large stack usage
     Schedule* schedules = (Schedule*)malloc(sizeof(Schedule) * 1000);

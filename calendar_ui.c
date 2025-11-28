@@ -4,6 +4,7 @@
 #include "calendar_mgr.h"
 #include "file_io.h"
 #include "color_util.h"
+#include "share_mgr.h" 
 #include "struct.h"
 #include "app_scene.h"
 #include <wchar.h>
@@ -100,88 +101,138 @@ void CalendarUi_DrawHeader(const struct tm* current_month,
 }
 
 void CalendarUi_DrawLeftPanel(CalendarCheckbox* calendars, int* calendar_count,
-                               UiRect* rect_new_calendar,
-                               UiRect* rect_share_mgr)
+    UiRect* rect_new_calendar,
+    UiRect* rect_share_mgr)
 {
     int panelX = 2;
     int y = 6;
-    
-    // 구분선
+
+    // 세로 구분선
     draw_box(20, 5, 1, 23);
-    
-    // 내 캘린더 섹션
+
+    // ===== 내 캘린더 헤더 + [+] 버튼 =====
     goto_xy(panelX, y);
     SetColor(COLOR_YELLOW, COLOR_BLACK);
     wprintf(L"내 캘린더");
     ResetColor();
+
+    // 내 캘린더 [+] 버튼을 오른쪽 고정 위치에 배치
+    int newBtnX = panelX + 14;   // 클릭하기 편한 정도로 여유 있게
+    goto_xy(newBtnX, y);
+    wprintf(L"[+]");
+
+    // 내 캘린더 추가 버튼 클릭 영역
+    rect_new_calendar->x = newBtnX;
+    rect_new_calendar->y = y;
+    rect_new_calendar->w = 3;   // "[+]" 3글자 폭
+    rect_new_calendar->h = 1;
+
     y += 2;
-    
+
+    // 내 캘린더 아래 구분선
     goto_xy(panelX, y);
     for (int i = 0; i < 16; i++) wprintf(L"─");
     y += 1;
-    
-    // 캘린더 로드
-    Calendar all_calendars[32];
-    int all_count = CalMgr_GetAllCalendars(g_current_user.user_id, all_calendars, 32);
-    
+
+    // ===== 내 캘린더 리스트 (owner == g_current_user) =====
+    Calendar all_calendars[100];
+    int all_count = FileIO_LoadCalendars(all_calendars, 100);
+
     *calendar_count = 0;
-    for (int i = 0; i < all_count && i < 10; i++) {
-        calendars[i].calendar_id = all_calendars[i].calendar_id;
-        wcsncpy_s(calendars[i].name, 32, all_calendars[i].name, _TRUNCATE);
-        calendars[i].color = all_calendars[i].color;
-        calendars[i].is_checked = all_calendars[i].is_active;
-        
-        calendars[i].rect.x = panelX;
-        calendars[i].rect.y = y;
-        calendars[i].rect.w = 16;
-        calendars[i].rect.h = 1;
-        
+
+    for (int i = 0; i < all_count && *calendar_count < 32; i++) {
+        // 현재 사용자 소유 + 살아있는 캘린더만
+        if (wcscmp(all_calendars[i].user_id, g_current_user.user_id) != 0)
+            continue;
+        if (all_calendars[i].is_deleted)
+            continue;
+
+        int idx = *calendar_count;
+
+        calendars[idx].calendar_id = all_calendars[i].calendar_id;
+        wcsncpy_s(calendars[idx].name, 32, all_calendars[i].name, _TRUNCATE);
+        calendars[idx].color = all_calendars[i].color;
+        calendars[idx].is_checked = all_calendars[i].is_active;
+
+        calendars[idx].rect.x = panelX;
+        calendars[idx].rect.y = y;
+        calendars[idx].rect.w = 16;
+        calendars[idx].rect.h = 1;
+
         goto_xy(panelX, y);
-        wprintf(L"%ls ", calendars[i].is_checked ? L"[v]" : L"[ ]");
-        
-        SetColor(calendars[i].color, COLOR_BLACK);
+        wprintf(L"%ls ", calendars[idx].is_checked ? L"[v]" : L"[ ]");
+
+        SetColor(calendars[idx].color, COLOR_BLACK);
         wprintf(L"■");
         ResetColor();
-        
-        wprintf(L" %.10ls", calendars[i].name);
-        
+
+        wprintf(L" %.10ls", calendars[idx].name);
+
         y += 2;
         (*calendar_count)++;
     }
-    
-    // 새 캘린더 버튼
-    y++;
-    goto_xy(panelX, y);
-    wprintf(L"+ 새 캘린더");
-    rect_new_calendar->x = panelX;
-    rect_new_calendar->y = y;
-    rect_new_calendar->w = 12;
-    rect_new_calendar->h = 1;
-    y += 3;
-    
-    // 공유 캘린더 섹션
+
+    // 내 캘린더 리스트와 공유 캘린더 헤더 사이 여유 줄 하나
+    y += 1;
+
+    // ===== 공유 캘린더 헤더 + [+] 버튼 =====
     goto_xy(panelX, y);
     SetColor(COLOR_CYAN, COLOR_BLACK);
     wprintf(L"공유 캘린더");
     ResetColor();
+
+    // 공유 캘린더 [+] 버튼
+    int shareBtnX = panelX + 14;
+    goto_xy(shareBtnX, y);
+    wprintf(L"[+]");
+
+    // 공유 관리 버튼 클릭 영역
+    rect_share_mgr->x = shareBtnX;
+    rect_share_mgr->y = y;
+    rect_share_mgr->w = 3;  // "[+]"
+    rect_share_mgr->h = 1;
+
     y += 2;
-    
+
     goto_xy(panelX, y);
     for (int i = 0; i < 16; i++) wprintf(L"─");
     y += 1;
-    
-    // 공유받은 캘린더 표시 (간단히)
-    goto_xy(panelX, y);
-    // removed placeholder for shared calendars
-    y += 3;
-    
-    // 공유 관리 버튼
-    goto_xy(panelX, y);
-    wprintf(L"+ 공유 관리");
-    rect_share_mgr->x = panelX;
-    rect_share_mgr->y = y;
-    rect_share_mgr->w = 12;
-    rect_share_mgr->h = 1;
+
+    // ===== 공유받은 캘린더 리스트 =====
+    Calendar shared_cals[100];
+    int shared_count = ShareMgr_GetSharedCalendars(g_current_user.user_id,
+        shared_cals, 100);
+
+    for (int i = 0; i < shared_count && *calendar_count < 32; i++) {
+        if (shared_cals[i].is_deleted)
+            continue;
+
+        int idx = *calendar_count;
+
+        calendars[idx].calendar_id = shared_cals[i].calendar_id;
+        wcsncpy_s(calendars[idx].name, 32, shared_cals[i].name, _TRUNCATE);
+        calendars[idx].color = shared_cals[i].color;
+        calendars[idx].is_checked = shared_cals[i].is_active;
+
+        calendars[idx].rect.x = panelX;
+        calendars[idx].rect.y = y;
+        calendars[idx].rect.w = 16;
+        calendars[idx].rect.h = 1;
+
+        goto_xy(panelX, y);
+        wprintf(L"%ls ", calendars[idx].is_checked ? L"[v]" : L"[ ]");
+
+        SetColor(calendars[idx].color, COLOR_BLACK);
+        wprintf(L"■");
+        ResetColor();
+
+        wprintf(L" %.10ls", calendars[idx].name);
+
+        y += 2;
+        (*calendar_count)++;
+    }
+
+    // 예전의 "+ 새 캘린더", "+ 공유 관리" 한 줄짜리 버튼은 삭제
 }
 
 void CalendarUi_DrawMonthGrid(const struct tm* current_month,
