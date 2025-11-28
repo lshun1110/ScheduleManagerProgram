@@ -54,14 +54,16 @@ static void UpdateSignupFields(const wchar_t* su_name, const wchar_t* su_id, con
     wprintf(su_showPassword ? L"[X] view" : L"[ ] view");
 
     // 메시지 영역
-    goto_xy(45, 23);
+    goto_xy(35, 23);
     if (su_lastMsg == 1) {
-        wprintf(L"회원가입 실패 : 중복 ID 또는 잘못된 입력입니다.            ");
+        wprintf(L"회원가입 실패 : 중복 ID 또는 잘못된 입력입니다.  ");
     }
     else if (su_lastMsg == 2) {
-        wprintf(L"사용 가능한 ID입니다.                                 ");
+        goto_xy(45, 23);
+        wprintf(L"사용 가능한 ID입니다.           ");
     }
     else {
+        goto_xy(35, 23);
         wprintf(L"                                                ");
     }
 }

@@ -626,138 +626,216 @@ int CalendarUi_ShowYearMonthDialog(struct tm* current_month)
     int month = current_month->tm_mon + 1;
     int focused = 0; // 0: year, 1: month
     int need_redraw = 1;
-    
+
     wchar_t year_str[8] = L"";
     wchar_t month_str[4] = L"";
     swprintf_s(year_str, 8, L"%d", year);
     swprintf_s(month_str, 4, L"%d", month);
-    
-    UiRect rect_year = {48, 12, 10, 1};
-    UiRect rect_month = {48, 16, 10, 1};
-    UiRect rect_ok = {40, 20, 12, 3};
-    UiRect rect_cancel = {55, 20, 12, 3};
-    
+
+    // ── 팝업 위치/크기 (120x30 기준 중앙 정렬) ─────────────────
+    int console_w = 120;
+    int console_h = 30;
+
+    int dialog_w = 50;
+    int dialog_h = 14;
+
+    int dialog_x = (console_w - dialog_w) / 2;
+    int dialog_y = (console_h - dialog_h) / 2;
+
+    // 연/월 입력 박스 공통 설정
+    int field_box_w = 14;
+    int field_box_h = 3;
+
+    const wchar_t* year_label = L"연도:";
+    const wchar_t* month_label = L"월:";
+
+    int year_label_len = (int)wcslen(year_label);
+    int month_label_len = (int)wcslen(month_label);
+    int max_label_len = (year_label_len > month_label_len) ? year_label_len : month_label_len;
+
+    // "라벨 + 공백 1칸 + 박스" 전체 폭을 기준으로 가운데 정렬
+    int total_line_w = max_label_len + 1 + field_box_w;
+    int line_start_x = dialog_x + (dialog_w - total_line_w) / 2;
+
+    int label_x = line_start_x;
+    int field_x = line_start_x + max_label_len + 1; // 라벨 바로 오른쪽부터 박스
+    int field_text_x = field_x + 2;                      // 박스 안쪽 텍스트 시작
+
+    int year_label_y = dialog_y + 3;
+    int month_label_y = year_label_y + 4;
+    int year_text_y = year_label_y;
+    int month_text_y = month_label_y;
+
+    // 버튼 (가운데 정렬)
+    int btn_w = 12;
+    int btn_h = 3;
+    int gap = 4;
+
+    int btn_area_w = btn_w * 2 + gap;
+    int btn_x_start = dialog_x + (dialog_w - btn_area_w) / 2;
+    int btn_y = dialog_y + dialog_h - 4;
+
+    UiRect rect_year = { field_text_x, year_text_y, 10, 1 };
+    UiRect rect_month = { field_text_x, month_text_y, 10, 1 };
+    UiRect rect_ok = { btn_x_start,             btn_y, btn_w, btn_h };
+    UiRect rect_cancel = { btn_x_start + btn_w + gap, btn_y, btn_w, btn_h };
+    UiRect rect_dialog = { dialog_x, dialog_y, dialog_w, dialog_h };
+
     while (1) {
         if (need_redraw) {
-            Ui_ClearScreen();
-            draw_box(30, 8, 50, 18);
-            
-            goto_xy(32, 9);
-            wprintf(L"━━━━━━━ 날짜 이동 ━━━━━━━");
-            
-            goto_xy(32, 11);
-            wprintf(L"연도:");
-            draw_box(46, 11, 14, 3);
-            goto_xy(48, 12);
+            // 배경은 그대로 두고, 팝업만 그림자 + 박스
+            for (int i = 0; i < dialog_h; i++) {
+                goto_xy(dialog_x + 2, dialog_y + 1 + i);
+                SetColor(COLOR_WHITE - 8, COLOR_BLACK);
+                for (int j = 0; j < dialog_w; j++) {
+                    wprintf(L" ");
+                }
+                ResetColor();
+            }
+
+            // 팝업 박스
+            draw_box(dialog_x, dialog_y, dialog_w, dialog_h);
+
+            // 제목 (가운데 정렬)
+            const wchar_t* title = L"날짜 이동";
+            int title_len = (int)wcslen(title);
+            int title_x = dialog_x + (dialog_w - title_len) / 2;
+            goto_xy(title_x, dialog_y + 1);
+            wprintf(L"%ls", title);
+
+            // 연도 라벨 + 박스 (한 줄 전체가 팝업 가운데)
+            goto_xy(label_x, year_label_y);
+            wprintf(L"%ls", year_label);
+            draw_box(field_x, year_label_y - 1, field_box_w, field_box_h);
+            goto_xy(field_text_x, year_text_y);
             wprintf(L"%-10ls", year_str);
-            
-            goto_xy(32, 15);
-            wprintf(L"월:");
-            draw_box(46, 15, 14, 3);
-            goto_xy(48, 16);
+
+            // 월 라벨 + 박스 (연도와 같은 정렬)
+            goto_xy(label_x, month_label_y);
+            wprintf(L"%ls", month_label);
+            draw_box(field_x, month_label_y - 1, field_box_w, field_box_h);
+            goto_xy(field_text_x, month_text_y);
             wprintf(L"%-10ls", month_str);
-            
-            draw_box(38, 19, 14, 3);
-            goto_xy(42, 20);
+
+            // 버튼 (가운데 정렬)
+            draw_box(rect_ok.x, rect_ok.y, rect_ok.w, rect_ok.h);
+            goto_xy(rect_ok.x + 3, rect_ok.y + 1);
             wprintf(L"이 동");
-            
-            draw_box(53, 19, 14, 3);
-            goto_xy(57, 20);
+
+            draw_box(rect_cancel.x, rect_cancel.y, rect_cancel.w, rect_cancel.h);
+            goto_xy(rect_cancel.x + 3, rect_cancel.y + 1);
             wprintf(L"취 소");
-            
-            goto_xy(32, 23);
-            wprintf(L"Tab: 다음 | Enter: 이동 | ESC: 취소");
-            
+
+
             need_redraw = 0;
         }
-        
-        // 커서 표시
+
+        // 커서 위치
         if (focused == 0) {
-            goto_xy(48 + (int)wcslen(year_str), 12);
-            set_cursor_visibility(1);
-        } else {
-            goto_xy(48 + (int)wcslen(month_str), 16);
+            goto_xy(rect_year.x + (int)wcslen(year_str), rect_year.y);
             set_cursor_visibility(1);
         }
-        
+        else {
+            goto_xy(rect_month.x + (int)wcslen(month_str), rect_month.y);
+            set_cursor_visibility(1);
+        }
+
         UiInputEvent ev;
         Ui_WaitInput(&ev);
-        
+
+        // ── 마우스 입력 ─────────────────
         if (ev.type == UI_INPUT_MOUSE_LEFT) {
-            int mx = ev.pos.x, my = ev.pos.y;
-            
+            int mx = ev.pos.x;
+            int my = ev.pos.y;
+
+            if (!Ui_PointInRect(&rect_dialog, mx, my)) {
+                continue;
+            }
+
             if (Ui_PointInRect(&rect_year, mx, my)) {
                 focused = 0;
                 need_redraw = 1;
-            } else if (Ui_PointInRect(&rect_month, mx, my)) {
+            }
+            else if (Ui_PointInRect(&rect_month, mx, my)) {
                 focused = 1;
                 need_redraw = 1;
-            } else if (Ui_PointInRect(&rect_ok, mx, my)) {
+            }
+            else if (Ui_PointInRect(&rect_ok, mx, my)) {
                 int new_year = _wtoi(year_str);
                 int new_month = _wtoi(month_str);
-                
-                if (new_year >= 1900 && new_year <= 2100 && new_month >= 1 && new_month <= 12) {
+
+                if (new_year >= 1900 && new_year <= 2100 &&
+                    new_month >= 1 && new_month <= 12) {
                     current_month->tm_year = new_year - 1900;
                     current_month->tm_mon = new_month - 1;
                     current_month->tm_mday = 1;
                     mktime(current_month);
                     set_cursor_visibility(0);
                     return 1;
-                } else {
-                    goto_xy(32, 23);
+                }
+                else {
+                    goto_xy(dialog_x + 3, dialog_y + dialog_h - 2);
                     wprintf(L"! 올바른 연도와 월을 입력하세요!       ");
                     Sleep(1500);
                     need_redraw = 1;
                 }
-            } else if (Ui_PointInRect(&rect_cancel, mx, my)) {
+            }
+            else if (Ui_PointInRect(&rect_cancel, mx, my)) {
                 set_cursor_visibility(0);
                 return 0;
             }
-        } else if (ev.type == UI_INPUT_KEY) {
+        }
+        // ── 키보드 입력 ─────────────────
+        else if (ev.type == UI_INPUT_KEY) {
             wchar_t ch = ev.key;
-            
+
             if (ch == 27) { // ESC
                 set_cursor_visibility(0);
                 return 0;
             }
-            
+
             if (ch == L'\t') {
                 focused = (focused + 1) % 2;
                 need_redraw = 1;
                 continue;
             }
-            
+
             if (ch == L'\r' || ch == L'\n') { // Enter
                 int new_year = _wtoi(year_str);
                 int new_month = _wtoi(month_str);
-                
-                if (new_year >= 1900 && new_year <= 2100 && new_month >= 1 && new_month <= 12) {
+
+                if (new_year >= 1900 && new_year <= 2100 &&
+                    new_month >= 1 && new_month <= 12) {
                     current_month->tm_year = new_year - 1900;
                     current_month->tm_mon = new_month - 1;
                     current_month->tm_mday = 1;
                     mktime(current_month);
                     set_cursor_visibility(0);
                     return 1;
-                } else {
-                    goto_xy(32, 23);
+                }
+                else {
+                    goto_xy(dialog_x + 3, dialog_y + dialog_h - 2);
                     wprintf(L"! 올바른 연도와 월을 입력하세요!       ");
                     Sleep(1500);
                     need_redraw = 1;
                 }
+                continue;
             }
-            
+
+            // 숫자 입력/삭제
             wchar_t* buf = (focused == 0) ? year_str : month_str;
-            int max_len = (focused == 0) ? 7 : 3;
-            
+            int      max_len = (focused == 0) ? 7 : 3;
+
             if (ch == L'\b') {
                 size_t len = wcslen(buf);
                 if (len > 0) {
                     buf[len - 1] = L'\0';
                     need_redraw = 1;
                 }
-            } else if (ch >= L'0' && ch <= L'9') {
+            }
+            else if (ch >= L'0' && ch <= L'9') {
                 size_t len = wcslen(buf);
-                if (len < max_len) {
+                if (len < (size_t)max_len) {
                     buf[len] = ch;
                     buf[len + 1] = L'\0';
                     need_redraw = 1;
