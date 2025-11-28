@@ -168,21 +168,45 @@ int FileIO_UpdateCalendar(const Calendar* cal) {
 int FileIO_DeleteCalendar(int calendar_id) {
     Calendar calendars[100];
     int count = FileIO_LoadCalendars(calendars, 100);
-    
+    if (count <= 0) return 0;
+
+    int found = 0;
     for (int i = 0; i < count; i++) {
         if (calendars[i].calendar_id == calendar_id) {
-            calendars[i].is_deleted = 1;
+            calendars[i].is_deleted = 1;  // soft delete
+            found = 1;
             break;
         }
     }
-    
+    if (!found) return 0;
+
+    int total = count;
+    int deleted = 0;
+    for (int i = 0; i < count; i++) {
+        if (calendars[i].is_deleted) {
+            deleted++;
+        }
+    }
+
     FILE* fp = _wfopen(L"calendars.txt", L"w, ccs=UTF-16LE");
     if (!fp) return 0;
-    for (int i = 0; i < count; i++) {
-        fwprintf(fp, L"%d\t%ls\t%ls\t%d\t%d\t%d\n",
-                 calendars[i].calendar_id, calendars[i].user_id, calendars[i].name,
-                 calendars[i].color, calendars[i].is_active, calendars[i].is_deleted);
+
+    int do_compact = 0;
+    if (deleted >= CALENDAR_COMPACT_DELETE_COUNT ||
+        (total > 0 && deleted * 2 > total)) {
+        do_compact = 1;
     }
+
+    for (int i = 0; i < count; i++) {
+        if (do_compact && calendars[i].is_deleted) {
+            // 압축 모드일 때는 삭제된 레코드는 파일에 안 씀
+            continue;
+        }
+        fwprintf(fp, L"%d\t%ls\t%ls\t%d\t%d\t%d\n",
+            calendars[i].calendar_id, calendars[i].user_id, calendars[i].name,
+            calendars[i].color, calendars[i].is_active, calendars[i].is_deleted);
+    }
+
     fclose(fp);
     return 1;
 }
@@ -283,26 +307,54 @@ int FileIO_UpdateSchedule(const Schedule* sched) {
 int FileIO_DeleteSchedule(int schedule_id) {
     Schedule schedules[300];
     int count = FileIO_LoadSchedules(schedules, 1000);
-    
+    if (count <= 0) return 0;
+
+    int found = 0;
     for (int i = 0; i < count; i++) {
         if (schedules[i].schedule_id == schedule_id) {
-            schedules[i].is_deleted = 1;
+            schedules[i].is_deleted = 1;  // soft delete
+            found = 1;
             break;
         }
     }
-    
+    if (!found) return 0;
+
+    int total = count;
+    int deleted = 0;
+    for (int i = 0; i < count; i++) {
+        if (schedules[i].is_deleted) {
+            deleted++;
+        }
+    }
+
     FILE* fp = _wfopen(L"schedule.txt", L"w, ccs=UTF-16LE");
     if (!fp) return 0;
-    for (int i = 0; i < count; i++) {
-        fwprintf(fp, L"%d\t%d\t%ls\t%ls\t%ls\t%04d-%02d-%02d %02d:%02d\t%04d-%02d-%02d %02d:%02d\t%d\t%d\t%d\n",
-                 schedules[i].schedule_id, schedules[i].calendar_id,
-                 schedules[i].title, schedules[i].location, (schedules[i].memo[0] ? schedules[i].memo : L"(empty)"),
-                 schedules[i].start_time.tm_year + 1900, schedules[i].start_time.tm_mon + 1, schedules[i].start_time.tm_mday,
-                 schedules[i].start_time.tm_hour, schedules[i].start_time.tm_min,
-                 schedules[i].end_time.tm_year + 1900, schedules[i].end_time.tm_mon + 1, schedules[i].end_time.tm_mday,
-                 schedules[i].end_time.tm_hour, schedules[i].end_time.tm_min,
-                 schedules[i].is_all_day, schedules[i].repeat_type, schedules[i].is_deleted);
+
+    int do_compact = 0;
+    if (deleted >= SCHEDULE_COMPACT_DELETE_COUNT ||
+        (total > 0 && deleted * 2 > total)) {
+        do_compact = 1;
     }
+
+    for (int i = 0; i < count; i++) {
+        if (do_compact && schedules[i].is_deleted) {
+            // 압축 모드에서는 삭제된 일정은 파일에 안 씀
+            continue;
+        }
+        fwprintf(fp, L"%d\t%d\t%ls\t%ls\t%ls\t"
+            L"%04d-%02d-%02d %02d:%02d\t"
+            L"%04d-%02d-%02d %02d:%02d\t"
+            L"%d\t%d\t%d\n",
+            schedules[i].schedule_id, schedules[i].calendar_id,
+            schedules[i].title, schedules[i].location,
+            (schedules[i].memo[0] ? schedules[i].memo : L"(empty)"),
+            schedules[i].start_time.tm_year + 1900, schedules[i].start_time.tm_mon + 1, schedules[i].start_time.tm_mday,
+            schedules[i].start_time.tm_hour, schedules[i].start_time.tm_min,
+            schedules[i].end_time.tm_year + 1900, schedules[i].end_time.tm_mon + 1, schedules[i].end_time.tm_mday,
+            schedules[i].end_time.tm_hour, schedules[i].end_time.tm_min,
+            schedules[i].is_all_day, schedules[i].repeat_type, schedules[i].is_deleted);
+    }
+
     fclose(fp);
     return 1;
 }

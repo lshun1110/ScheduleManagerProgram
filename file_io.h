@@ -3,6 +3,9 @@
 
 #include "struct.h"
 
+#define CALENDAR_COMPACT_DELETE_COUNT 50
+#define SCHEDULE_COMPACT_DELETE_COUNT 100
+
 // »ç¿ëÀÚ
 int FileIO_LoadUsers(User* buf, int max_count);
 int FileIO_AddUser(const User* user);
