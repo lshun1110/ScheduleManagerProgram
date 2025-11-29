@@ -306,7 +306,7 @@ int FileIO_UpdateSchedule(const Schedule* sched) {
 
 int FileIO_DeleteSchedule(int schedule_id) {
     Schedule schedules[300];
-    int count = FileIO_LoadSchedules(schedules, 1000);
+    int count = FileIO_LoadSchedules(schedules, 300);
     if (count <= 0) return 0;
 
     int found = 0;
@@ -338,40 +338,50 @@ int FileIO_DeleteSchedule(int schedule_id) {
 
     for (int i = 0; i < count; i++) {
         if (do_compact && schedules[i].is_deleted) {
-            // 압축 모드에서는 삭제된 일정은 파일에 안 씀
+            // 압축 모드일 때는 삭제된 레코드는 파일에 안 씀
             continue;
         }
+
         fwprintf(fp, L"%d\t%d\t%ls\t%ls\t%ls\t"
-            L"%04d-%02d-%02d %02d:%02d\t"
-            L"%04d-%02d-%02d %02d:%02d\t"
-            L"%d\t%d\t%d\n",
-            schedules[i].schedule_id, schedules[i].calendar_id,
-            schedules[i].title, schedules[i].location,
-            (schedules[i].memo[0] ? schedules[i].memo : L"(empty)"),
-            schedules[i].start_time.tm_year + 1900, schedules[i].start_time.tm_mon + 1, schedules[i].start_time.tm_mday,
-            schedules[i].start_time.tm_hour, schedules[i].start_time.tm_min,
-            schedules[i].end_time.tm_year + 1900, schedules[i].end_time.tm_mon + 1, schedules[i].end_time.tm_mday,
-            schedules[i].end_time.tm_hour, schedules[i].end_time.tm_min,
-            schedules[i].is_all_day, schedules[i].repeat_type, schedules[i].is_deleted);
+                    L"%04d-%02d-%02d %02d:%02d\t"
+                    L"%04d-%02d-%02d %02d:%02d\t"
+                    L"%d\t%d\t%d\n",
+            schedules[i].schedule_id,
+            schedules[i].calendar_id,
+            schedules[i].title,
+            schedules[i].location[0] ? schedules[i].location : L"(empty)",
+            schedules[i].memo[0] ? schedules[i].memo : L"(empty)",
+            schedules[i].start_time.tm_year + 1900,
+            schedules[i].start_time.tm_mon + 1,
+            schedules[i].start_time.tm_mday,
+            schedules[i].start_time.tm_hour,
+            schedules[i].start_time.tm_min,
+            schedules[i].end_time.tm_year + 1900,
+            schedules[i].end_time.tm_mon + 1,
+            schedules[i].end_time.tm_mday,
+            schedules[i].end_time.tm_hour,
+            schedules[i].end_time.tm_min,
+            schedules[i].is_all_day,
+            schedules[i].repeat_type,
+            schedules[i].is_deleted);
     }
 
     fclose(fp);
     return 1;
 }
 
-// 공유
 int FileIO_LoadShares(Share* buf, int max_count) {
     FILE* fp = _wfopen(L"shared_calendars.txt", L"r, ccs=UTF-16LE");
     if (!fp) return 0;
-    
+
     int count = 0;
     wchar_t line[256];
     while (count < max_count && fgetws(line, 256, fp)) {
-        Share s = {0};
+        Share s = { 0 };
         swscanf_s(line, L"%d\t%d\t%31[^\t]\t%31[^\t]\t%d\t%d",
-                  &s.share_id, &s.calendar_id,
-                  s.owner_id, 32, s.shared_with, 32,
-                  &s.permission, &s.is_deleted);
+            &s.share_id, &s.calendar_id,
+            s.owner_id, 32, s.shared_with, 32,
+            &s.permission, &s.is_deleted);
         buf[count++] = s;
         if (s.share_id >= next_share_id) {
             next_share_id = s.share_id + 1;
