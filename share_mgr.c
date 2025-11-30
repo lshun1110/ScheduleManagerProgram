@@ -54,16 +54,22 @@ int ShareMgr_GetSharedCalendars(const wchar_t* user_id, Calendar* buf, int max_c
 }
 
 void ShareMgr_Show(void) {
-    int tab = 0; // 0: 내가 공유한, 1: 나에게 공유된, 2: 새 공유
+    int tab = 0; // 0: 내가 공유한, 1: 나에게 공유된, 2: 새 공유, 3: 공유 권한 수정
     int need_redraw = 1;
-    
+
+    // 새 공유 만들기 탭
     wchar_t new_user_id[32] = L"";
     int selected_calendar = 0;
     int permission = 0; // 0: 읽기, 1: 편집
-    
-    UiRect rect_tab1 = {12, 3, 25, 1};
-    UiRect rect_tab2 = {38, 3, 25, 1};
-    UiRect rect_tab3 = {64, 3, 25, 1};
+
+    // 공유 권한 수정 탭
+    int selected_share_index = 0;       // 리스트에서 선택된 공유 인덱스
+    int selected_share_permission = -1; // 0/1이면 토글 값, -1이면 리스트에서 다시 읽기
+
+    UiRect rect_tab1 = (UiRect){ 12, 3, 25, 1 };
+    UiRect rect_tab2 = (UiRect){ 38, 3, 25, 1 };
+    UiRect rect_tab3 = (UiRect){ 64, 3, 25, 1 };
+    UiRect rect_tab4 = (UiRect){ 90, 3, 25, 1 };
     
     while (1) {
         if (need_redraw) {
@@ -99,7 +105,15 @@ void ShareMgr_Show(void) {
             } else {
                 wprintf(L"  새 공유 만들기  ");
             }
-            
+            goto_xy(90, 3);
+            if (tab == 3) {
+                SetColor(COLOR_WHITE, COLOR_BLUE);
+                wprintf(L"  공유 권한 수정  ");
+                ResetColor();
+            }
+            else {
+                wprintf(L"  공유 권한 수정  ");
+            }
             goto_xy(7, 5);
             for (int i = 0; i < 106; i++) wprintf(L"─");
             
@@ -274,6 +288,12 @@ void ShareMgr_Show(void) {
                 tab = 2;
                 need_redraw = 1;
             }
+            else if (Ui_PointInRect(&rect_tab4, mx, my)) {
+                tab = 3;
+                selected_share_index = 0;
+                selected_share_permission = -1; // 처음엔 리스트 값에서 다시 읽기
+                need_redraw = 1;
+            }
             
             // 새 공유 만들기 탭
             if (tab == 2) {
@@ -340,6 +360,7 @@ void ShareMgr_Show(void) {
                     }
                 }
             }
+
         } else if (ev.type == UI_INPUT_KEY) {
             wchar_t ch = ev.key;
             

@@ -472,3 +472,40 @@ int FileIO_DeleteShare(int share_id)
     fclose(fp);
     return 1;
 }
+
+int FileIO_UpdateSharePermission(int share_id, int permission)
+{
+    Share shares[256];
+    int count = FileIO_LoadShares(shares, 256);
+    if (count <= 0)
+        return 0;
+
+    int found = 0;
+    for (int i = 0; i < count; i++) {
+        if (shares[i].share_id == share_id && shares[i].is_deleted == 0) {
+            shares[i].permission = permission;   // 0: 읽기, 1: 편집
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found)
+        return 0;
+
+    FILE* fp = _wfopen(L"shared_calendars.txt", L"w, ccs=UTF-16LE");
+    if (!fp)
+        return 0;
+
+    for (int i = 0; i < count; i++) {
+        fwprintf(fp, L"%d %d %ls %ls %d %d\n",
+            shares[i].share_id,
+            shares[i].calendar_id,
+            shares[i].owner_id,
+            shares[i].shared_with,
+            shares[i].permission,
+            shares[i].is_deleted);
+    }
+
+    fclose(fp);
+    return 1;
+}

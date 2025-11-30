@@ -28,5 +28,6 @@ int FileIO_DeleteSchedule(int schedule_id);
 int FileIO_LoadShares(Share* buf, int max_count);
 int FileIO_AddShare(const Share* share);
 int FileIO_DeleteShare(int share_id);
+int FileIO_UpdateSharePermission(int share_id, int permission);
 
 #endif
