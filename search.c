@@ -17,9 +17,10 @@ void Search_ShowDialog(void) {
     Schedule results[100];
     int result_count = 0;
     int searched = 0;
+    int placeholder_cleared = 0;  // 검색창 안내 문구(플레이스홀더) 상태
 
-    UiRect rect_input = { 25, 8, 60, 1 };
-    UiRect rect_search = { 88, 7, 12, 3 };
+    UiRect rect_input = (UiRect){ 25, 8, 60, 1 };
+    UiRect rect_search = (UiRect){ 88, 7, 12, 3 };
 
     while (1) {
         if (need_redraw) {
@@ -31,25 +32,36 @@ void Search_ShowDialog(void) {
             goto_xy(12, 5);
             wprintf(L"━━━━━━━━━━━━━━━━ 일정 검색 ━━━━━━━━━━━━━━━━");
 
-            // 검색창
-            goto_xy(12, 7);
+            // ───────────────── 검색창 ─────────────────
+            goto_xy(12, 8);
             wprintf(L"검색어:");
             draw_box(23, 7, 63, 3);
+
+            // 먼저 검색창 안을 공백으로 싹 밀어버리고
             goto_xy(25, 8);
+            wprintf(L"                                                          "); // 대충 58칸 정도 공백
+            goto_xy(25, 8);
+
             if (search_query[0]) {
+                // 이미 입력된 검색어가 있으면 그대로 출력
                 wprintf(L"%-58ls", search_query);
             }
             else {
-                SetColor(COLOR_WHITE - 8, COLOR_BLACK);
-                wprintf(L"제목 또는 메모로 검색...");
-                ResetColor();
+                // 아직 입력 전: 플레이스홀더 표시 (클릭 전까지만)
+                if (!placeholder_cleared) {
+                    SetColor(COLOR_WHITE - 8, COLOR_BLACK);
+                    wprintf(L"제목 또는 메모로 검색...");
+                    ResetColor();
+                }
+                // placeholder_cleared == 1 이면서 search_query 비어있으면 그냥 빈 칸 유지
             }
 
+            // 검색 버튼
             draw_box(86, 7, 14, 3);
             goto_xy(89, 8);
             wprintf(L"검 색");
 
-            // 검색 결과
+            // ───────────────── 검색 결과 ─────────────────
             if (searched) {
                 goto_xy(12, 11);
                 wprintf(L"검색 결과: %d건", result_count);
@@ -90,13 +102,14 @@ void Search_ShowDialog(void) {
                 wprintf(L"검색 결과가 없습니다. 검색어를 입력하고 [검 색] 버튼을 누르세요.");
             }
 
-            goto_xy(12, 26);
-            wprintf(L"[ ESC: 돌아가기 ]");
-
             need_redraw = 0;
         }
 
-        // ★ 여기부터 입력 처리 부분 ★
+        // 한글 IME 때문에, 입력 받기 전에 항상 커서를 검색창으로 고정
+        goto_xy(25 + (int)wcslen(search_query), 8);
+        set_cursor_visibility(1);
+
+        // ───────────────── 입력 처리 ─────────────────
         UiInputEvent ev;
         Ui_WaitInput(&ev);
 
@@ -111,7 +124,8 @@ void Search_ShowDialog(void) {
             }
 
             if (Ui_PointInRect(&rect_input, mx, my)) {
-                // 입력 필드 클릭
+                // 입력 필드 클릭 → 플레이스홀더 제거
+                placeholder_cleared = 1;
                 need_redraw = 1;
             }
             else if (Ui_PointInRect(&rect_search, mx, my)) {
@@ -137,7 +151,6 @@ void Search_ShowDialog(void) {
                     Schedule* s = &all_schedules[i];
                     if (s->is_deleted) continue;
 
-                    // 이 일정의 calendar_id가 로그인 사용자의 캘린더/공유 캘린더인지 확인
                     int owned = 0;
                     for (int j = 0; j < user_cal_count; j++) {
                         if (user_cals[j].calendar_id == s->calendar_id) {
@@ -147,7 +160,6 @@ void Search_ShowDialog(void) {
                     }
                     if (!owned) continue;
 
-                    // 제목 또는 메모에 검색어 포함 여부
                     if (wcsstr(s->title, search_query) != NULL ||
                         wcsstr(s->memo, search_query) != NULL) {
                         results[result_count++] = *s;
@@ -176,11 +188,9 @@ void Search_ShowDialog(void) {
                     continue;
                 }
 
-                // 모든 일정 로드
                 Schedule* all_schedules = (Schedule*)malloc(sizeof(Schedule) * 1000);
                 int all_count = FileIO_LoadSchedules(all_schedules, 1000);
 
-                // 현재 사용자 기준으로 접근 가능한 캘린더 목록 로드
                 Calendar user_cals[32];
                 int user_cal_count = CalMgr_GetAllCalendars(g_current_user.user_id, user_cals, 32);
 
@@ -189,7 +199,6 @@ void Search_ShowDialog(void) {
                     Schedule* s = &all_schedules[i];
                     if (s->is_deleted) continue;
 
-                    // 이 일정의 calendar_id가 로그인 사용자의 캘린더/공유 캘린더인지 확인
                     int owned = 0;
                     for (int j = 0; j < user_cal_count; j++) {
                         if (user_cals[j].calendar_id == s->calendar_id) {
@@ -199,7 +208,6 @@ void Search_ShowDialog(void) {
                     }
                     if (!owned) continue;
 
-                    // 제목 또는 메모에 검색어 포함 여부
                     if (wcsstr(s->title, search_query) != NULL ||
                         wcsstr(s->memo, search_query) != NULL) {
                         results[result_count++] = *s;
@@ -211,7 +219,7 @@ void Search_ShowDialog(void) {
                 need_redraw = 1;
             }
 
-            if (ch == L'\b') {
+            if (ch == L'\b') {  // 백스페이스
                 size_t len = wcslen(search_query);
                 if (len > 0) {
                     search_query[len - 1] = L'\0';

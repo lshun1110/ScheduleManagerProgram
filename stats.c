@@ -104,9 +104,8 @@ void Stats_ShowMonthly(const struct tm* month) {
     int y = 12;
     for (int i = 0; i < stats_count; i++) {
         goto_xy(33, y);
-        // bar removed
-        wprintf(L"бс");
         
+        wprintf(L"%d.",i+1);
         ResetColor();
         wprintf(L" %-12ls", stats[i].calendar_name);
         
@@ -232,7 +231,7 @@ void Stats_ShowWeekly(const struct tm* week_start) {
     int y = 12;
     for (int i = 0; i < stats_count; i++) {
         goto_xy(33, y);
-        wprintf(L"бс");
+        wprintf(L"%d.", i+1);
         ResetColor();
         wprintf(L" %-12ls", stats[i].calendar_name);
 
