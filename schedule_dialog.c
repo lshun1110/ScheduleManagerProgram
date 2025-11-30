@@ -230,11 +230,11 @@ int ScheduleDialog_Add(const Calendar* calendars, int cal_count,
         }
 
         // 커서 위치
-        if (focused == FIELD_TITLE && title[0]) {
+        if (focused == FIELD_TITLE) {
             goto_xy(25 + (int)wcslen(title), 9);
             set_cursor_visibility(1);
         }
-        else if (focused == FIELD_LOCATION && location[0]) {
+        else if (focused == FIELD_LOCATION) {
             goto_xy(25 + (int)wcslen(location), 12);
             set_cursor_visibility(1);
         }
@@ -254,7 +254,7 @@ int ScheduleDialog_Add(const Calendar* calendars, int cal_count,
             goto_xy(77 + (int)wcslen(end_time), 15);
             set_cursor_visibility(1);
         }
-        else if (focused == FIELD_MEMO && memo[0]) {
+        else if (focused == FIELD_MEMO) {
             goto_xy(25 + (int)wcslen(memo), 18);
             set_cursor_visibility(1);
         }

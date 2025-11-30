@@ -129,7 +129,7 @@ void ShareMgr_Show(void) {
                 int cal_count = FileIO_LoadCalendars(calendars, 100);
 
                 goto_xy(10, 7);
-                wprintf(L"캘린더               공유 대상         권한");
+                wprintf(L"캘린더              공유 대상             권한");
                 goto_xy(10, 8);
                 for (int i = 0; i < 50; i++) wprintf(L"─");
 
@@ -176,7 +176,7 @@ void ShareMgr_Show(void) {
                 int cal_count = FileIO_LoadCalendars(calendars, 100);
 
                 goto_xy(10, 7);
-                wprintf(L"캘린더               소유자           권한");
+                wprintf(L"캘린더               소유자               권한");
                 goto_xy(10, 8);
                 for (int i = 0; i < 50; i++) wprintf(L"─");
 
@@ -282,7 +282,7 @@ void ShareMgr_Show(void) {
                     if (selected_share_index >= share_count) selected_share_index = share_count - 1;
 
                     goto_xy(10, 9);
-                    wprintf(L"선택  캘린더               공유 대상         권한");
+                    wprintf(L"선택  캘린더           공유 대상           권한");
                     goto_xy(10, 10);
                     for (int i = 0; i < 50; i++) wprintf(L"─");
 
@@ -493,7 +493,6 @@ void ShareMgr_Show(void) {
                             need_redraw = 1;
                         }
 
-                        // 3) 권한 저장 버튼 (40~54, 24~26)
                         if (my >= 24 && my <= 26 && mx >= 40 && mx <= 54) {
                             if (selected_share_index >= 0 && selected_share_index < share_count) {
                                 int perm_to_save;
@@ -505,8 +504,15 @@ void ShareMgr_Show(void) {
                                 }
 
                                 FileIO_UpdateSharePermission(shares[selected_share_index].share_id, perm_to_save);
+
+                                // ★ 여기서 화면을 나가지 않고, 메세지만 보여주고 다시 그려준다
+                                goto_xy(10, 27);
+                                wprintf(L"! 권한이 저장되었습니다!                 ");
+                                Sleep(1500);
+
                                 selected_share_permission = -1;
                                 need_redraw = 1;
+
                             }
                         }
                         // 4) 공유 해제 버튼 (60~74, 24~26)

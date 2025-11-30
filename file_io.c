@@ -497,7 +497,7 @@ int FileIO_UpdateSharePermission(int share_id, int permission)
         return 0;
 
     for (int i = 0; i < count; i++) {
-        fwprintf(fp, L"%d %d %ls %ls %d %d\n",
+        fwprintf(fp, L"%d\t%d\t%ls\t%ls\t%d\t%d\n",
             shares[i].share_id,
             shares[i].calendar_id,
             shares[i].owner_id,
