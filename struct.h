@@ -54,14 +54,4 @@ typedef struct {
     int     is_deleted;       // 0: 정상, 1: 삭제
 } Share;
 
-// 알림 정보
-//  → 파일 형식: alarm_id \t schedule_id \t minutes_before \t is_enabled
-typedef struct {
-    int alarm_id;        // 알림 ID
-    int schedule_id;     // 어느 일정의 알림인지
-    int minutes_before;  // 일정 시작 몇 분 전인지
-    int is_enabled;      // 1: 사용 / 0: 끔
-    int is_deleted;      // 0: 정상 / 1: 삭제
-} Alarm;
-
 #endif

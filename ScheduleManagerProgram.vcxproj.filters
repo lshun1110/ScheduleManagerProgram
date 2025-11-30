@@ -48,12 +48,6 @@
     <ClCompile Include="schedule_logic.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="calendar_logic.c">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="alarm_logic.c">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="calendar_mgr.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -120,12 +114,6 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="schedule_logic.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="calendar_logic.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="alarm_logic.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="calendar_mgr.h">

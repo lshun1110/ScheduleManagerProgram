@@ -26,7 +26,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     const wchar_t* end_date, const wchar_t* end_time,
     const wchar_t* memo, int is_allday, int repeat_type,
     DialogField focused) {
-    draw_box(10, 2, 100, 26);
+    draw_box(0, 0, 119, 29);
 
     goto_xy(12, 3);
     wprintf(L"━━━━━━━━━━━━━━━━━━ 일정 등록 ━━━━━━━━━━━━━━━━━━");

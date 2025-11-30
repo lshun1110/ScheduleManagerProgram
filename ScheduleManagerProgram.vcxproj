@@ -145,8 +145,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="schedule_logic.c" />
-    <ClCompile Include="calendar_logic.c" />
-    <ClCompile Include="alarm_logic.c" />
     <ClCompile Include="user_menu.c" />
   </ItemGroup>
   <ItemGroup>
@@ -172,8 +170,6 @@
     <ClInclude Include="calendar_loop.h" />
     <ClInclude Include="calendar_ui.h" />
     <ClInclude Include="schedule_logic.h" />
-    <ClInclude Include="calendar_logic.h" />
-    <ClInclude Include="alarm_logic.h" />
     <ClInclude Include="user_menu.h" />
   </ItemGroup>
   <ItemGroup>
