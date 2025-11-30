@@ -206,16 +206,21 @@ int ScheduleDialog_Add(const Calendar* calendars, int cal_count,
     UiRect rect_repeat_left = { 47, 21, 2, 1 };
     UiRect rect_repeat_right = { 57, 21, 2, 1 };
     UiRect rect_save = { 35, 23, 15, 3 };
-    // draw back button
-    goto_xy(1, 1);
-    wprintf(L"<- Back");
     UiRect rect_cancel = { 55, 23, 15, 3 };
 
-    int need_redraw = 1;
+    int need_redraw = 0;
+
+    // 다이얼로그 진입 시 한 번만 전체 화면을 지우고 UI를 그린다
+    Ui_ClearScreen();
+    DrawDialog(calendars, cal_count, selected_cal,
+        title, location, start_date, start_time,
+        end_date, end_time, memo, is_allday, repeat_type, focused);
+    goto_xy(1, 1);
+    wprintf(L"<- Back");
 
     while (1) {
         if (need_redraw) {
-            Ui_ClearScreen();
+            // 값/포커스가 바뀐 경우에만 다시 그림 (Clear는 하지 않음)
             DrawDialog(calendars, cal_count, selected_cal,
                 title, location, start_date, start_time,
                 end_date, end_time, memo, is_allday, repeat_type, focused);

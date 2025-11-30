@@ -43,7 +43,7 @@ typedef struct {
     RepeatType repeat_type;  // 반복 유형
     int       is_deleted;    // 0: 정상, 1: 삭제
 } Schedule;
-// 메모리 상에만 있는 offset / indexing 필드 / 레코드 고정길이
+// is_deleted 는 상태 변수로 삭제 0 1 로 따지다가 일정 이상 쌓이면 rewrite 한다.
 // 공유 캘린더 정보
 typedef struct {
     int     share_id;
