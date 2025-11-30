@@ -69,7 +69,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     }
     else if (focused != FIELD_LOCATION) {
         SetColor(COLOR_WHITE - 8, COLOR_BLACK);
-        wprintf(L"장소 (선택사항)");
+        wprintf(L"장소 (일정 위치)");
         ResetColor();
     }
 
@@ -143,7 +143,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     }
     else if (focused != FIELD_MEMO) {
         SetColor(COLOR_WHITE - 8, COLOR_BLACK);
-        wprintf(L"메모 (선택사항)");
+        wprintf(L"일정 메모");
         ResetColor();
     }
 

@@ -68,7 +68,7 @@ void ShareMgr_Show(void) {
     while (1) {
         if (need_redraw) {
             Ui_ClearScreen();
-            draw_box(5, 1, 110, 27);
+            draw_box(0, 0, 119, 29);
             goto_xy(1,1);
             wprintf(L"<- Back");
             
@@ -240,9 +240,6 @@ void ShareMgr_Show(void) {
                 goto_xy(44, 21);
                 wprintf(L"공유하기");
             }
-            
-            goto_xy(10, 26);
-            wprintf(L"ESC: 닫기");
             
             need_redraw = 0;
         }

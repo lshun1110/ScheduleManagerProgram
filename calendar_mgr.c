@@ -82,15 +82,17 @@ int CalMgr_GetActiveCalendarIds(const wchar_t* user_id, int* buf, int max_count)
 }
 
 int CalMgr_GetSchedulesForDate(const int* calendar_ids, int cal_count,
-                                const struct tm* date,
-                                Schedule* buf, int max_count) {
+    const struct tm* date,
+    Schedule* buf, int max_count)
+{
     Schedule all_scheds[300];
     int total = FileIO_LoadSchedules(all_scheds, 300);
-    
+
     int result_count = 0;
     for (int i = 0; i < total && result_count < max_count; i++) {
         if (all_scheds[i].is_deleted) continue;
-        
+
+        // 1) 캘린더 필터
         int cal_match = 0;
         for (int j = 0; j < cal_count; j++) {
             if (all_scheds[i].calendar_id == calendar_ids[j]) {
@@ -99,10 +101,70 @@ int CalMgr_GetSchedulesForDate(const int* calendar_ids, int cal_count,
             }
         }
         if (!cal_match) continue;
-        
-        if (all_scheds[i].start_time.tm_year == date->tm_year &&
-            all_scheds[i].start_time.tm_mon == date->tm_mon &&
-            all_scheds[i].start_time.tm_mday == date->tm_mday) {
+
+        // 2) 날짜/반복 판정
+        int sy = all_scheds[i].start_time.tm_year;
+        int sm = all_scheds[i].start_time.tm_mon;
+        int sd = all_scheds[i].start_time.tm_mday;
+
+        int dy = date->tm_year;
+        int dm = date->tm_mon;
+        int dd = date->tm_mday;
+
+        // date >= start_date ?
+        int date_after_or_same =
+            (dy > sy) ||
+            (dy == sy && dm > sm) ||
+            (dy == sy && dm == sm && dd >= sd);
+
+        int occurs = 0;
+        RepeatType rt = all_scheds[i].repeat_type;
+
+        switch (rt) {
+        case REPEAT_NONE:
+        default:
+            // 기존 방식: 시작 날짜와 완전히 같은 날만
+            if (sy == dy && sm == dm && sd == dd) {
+                occurs = 1;
+            }
+            break;
+
+        case REPEAT_DAILY:
+            // 시작일 이후(포함) 모든 날
+            if (date_after_or_same) {
+                occurs = 1;
+            }
+            break;
+
+        case REPEAT_WEEKLY:
+            if (date_after_or_same) {
+                // 시작일과 해당 날짜의 일수 차이가 7의 배수인지 검사
+                struct tm s = all_scheds[i].start_time;
+                struct tm d = *date;
+                s.tm_hour = 0; s.tm_min = 0; s.tm_sec = 0;
+                d.tm_hour = 0; d.tm_min = 0; d.tm_sec = 0;
+
+                time_t ts = mktime(&s);
+                time_t td = mktime(&d);
+                if (ts != (time_t)-1 && td != (time_t)-1 && td >= ts) {
+                    double diff_sec = difftime(td, ts);
+                    int diff_days = (int)(diff_sec / (60 * 60 * 24));
+                    if (diff_days % 7 == 0) {
+                        occurs = 1;
+                    }
+                }
+            }
+            break;
+
+        case REPEAT_MONTHLY:
+            // 같은 "일(day-of-month)"이고, 시작일 이후인 달들
+            if (dd == sd && date_after_or_same) {
+                occurs = 1;
+            }
+            break;
+        }
+
+        if (occurs) {
             buf[result_count++] = all_scheds[i];
         }
     }
