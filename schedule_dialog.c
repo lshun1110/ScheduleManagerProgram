@@ -32,7 +32,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     wprintf(L"━━━━━━━━━━━━━━━━━━ 일정 등록 ━━━━━━━━━━━━━━━━━━");
 
     // 캘린더 선택
-    goto_xy(12, 5);
+    goto_xy(12, 6);
     wprintf(L"캘린더 *");
     draw_box(23, 5, 30, 3);
     goto_xy(25, 6);
@@ -46,7 +46,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     wprintf(L"◀ ▶");
 
     // 제목
-    goto_xy(12, 8);
+    goto_xy(12, 9);
     wprintf(L"제목 *");
     draw_box(23, 8, 70, 3);
     goto_xy(25, 9);
@@ -60,7 +60,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     }
 
     // 장소
-    goto_xy(12, 11);
+    goto_xy(12, 12);
     wprintf(L"장소");
     draw_box(23, 11, 70, 3);
     goto_xy(25, 12);
@@ -74,7 +74,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     }
 
     // 시작 날짜/시간
-    goto_xy(12, 14);
+    goto_xy(12, 15);
     wprintf(L"시작");
     draw_box(23, 14, 15, 3);
     goto_xy(25, 15);
@@ -104,7 +104,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     }
 
     // 종료 날짜/시간
-    goto_xy(52, 14);
+    goto_xy(52, 15);
     wprintf(L"종료");
     draw_box(58, 14, 15, 3);
     goto_xy(60, 15);
@@ -134,7 +134,7 @@ static void DrawDialog(const Calendar* calendars, int cal_count, int selected_ca
     }
 
     // 메모
-    goto_xy(12, 17);
+    goto_xy(12, 18);
     wprintf(L"메모");
     draw_box(23, 17, 70, 4);
     goto_xy(25, 18);
