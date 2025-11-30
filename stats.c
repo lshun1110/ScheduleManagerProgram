@@ -50,7 +50,7 @@ static void CalculateStats(const Schedule* schedules, int sched_count,
 
 void Stats_ShowMonthly(const struct tm* month) {
     Ui_ClearScreen();
-    draw_box(10, 2, 100, 26);
+    draw_box(0, 0, 119, 29);
     goto_xy(1,1);
     wprintf(L"<- Back");
     

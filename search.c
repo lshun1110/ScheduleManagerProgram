@@ -24,7 +24,7 @@ void Search_ShowDialog(void) {
     while (1) {
         if (need_redraw) {
             Ui_ClearScreen();
-            draw_box(10, 4, 100, 24);
+            draw_box(0, 0, 119, 29);
             goto_xy(1, 1);
             wprintf(L"<- Back");
 
