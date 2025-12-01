@@ -1,4 +1,3 @@
-// calendar_ui.c
 #include "calendar_ui.h"
 #include "schedule_logic.h"
 #include "calendar_mgr.h"
@@ -172,7 +171,6 @@ void CalendarUi_DrawLeftPanel(CalendarCheckbox* calendars, int* calendar_count,
         (*calendar_count)++;
     }
 
-    // 내 캘린더 리스트와 공유 캘린더 헤더 사이 여유 줄 하나
     y += 1;
 
     // ===== 공유 캘린더 헤더 + [+] 버튼 =====
@@ -232,7 +230,6 @@ void CalendarUi_DrawLeftPanel(CalendarCheckbox* calendars, int* calendar_count,
         (*calendar_count)++;
     }
 
-    // 예전의 "+ 새 캘린더", "+ 공유 관리" 한 줄짜리 버튼은 삭제
 }
 
 void CalendarUi_DrawMonthGrid(const struct tm* current_month,

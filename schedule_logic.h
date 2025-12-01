@@ -23,4 +23,4 @@ int ScheduleLogic_Update(const Schedule* sched);
 // 일정 삭제
 int ScheduleLogic_Delete(int schedule_id);
 
-#endif // SCHEDULE_LOGIC_H
+#endif 

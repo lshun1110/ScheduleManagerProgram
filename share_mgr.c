@@ -1,4 +1,3 @@
-// share_mgr.c
 #include "common.h"
 #include "share_mgr.h"
 #include "ui_core.h"

@@ -5,11 +5,9 @@
 #include "ui_core.h"
 #include "color_util.h"
 
-// --------------------- 내부 함수 선언 ---------------------
 static int LoadMyCalendars(const wchar_t* user_id, Calendar* buf, int max_count);
 static int CalendarDialog_ConfirmSave(const wchar_t* name, int is_new);
 
-// --------------------- 구현 -----------------------------
 
 // 현재 사용자(user_id)가 소유한, 삭제되지 않은 캘린더만 로드
 static int LoadMyCalendars(const wchar_t* user_id, Calendar* buf, int max_count)
@@ -29,7 +27,6 @@ static int LoadMyCalendars(const wchar_t* user_id, Calendar* buf, int max_count)
     return count;
 }
 
-// 한 화면에서 캘린더 C/R/U/D 관리 (마우스 중심)
 // 반환값: 이 다이얼로그에서 "새 캘린더"를 하나라도 만들었으면 1, 아니면 0
 int CalendarDialog_Add(const wchar_t* user_id)
 {

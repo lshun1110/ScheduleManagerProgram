@@ -1,4 +1,3 @@
-// calendar_loop.c
 #include "common.h"
 #include "calendar_loop.h"
 #include "calendar_ui.h"
@@ -279,7 +278,7 @@ SceneState Calendar_Loop(void)
             }
             
             // 새 일정 등록 버튼
-                // handle schedule item click for editing
+            
     if (view_type == VIEW_MONTHLY) {
         int active_ids_edit[32];
         int active_cnt_edit = 0;

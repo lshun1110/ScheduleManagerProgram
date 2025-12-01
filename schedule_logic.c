@@ -38,7 +38,7 @@ int ScheduleLogic_LoadAll(Schedule* buf, int max_count)
                     s.start_time.tm_mon -= 1;
                     s.end_time.tm_year -= 1900;
                     s.end_time.tm_mon -= 1;
-        // Trim single-space memo to empty
+        
         if ((s.memo[0] == L' ' && s.memo[1] == 0) || wcscmp(s.memo, L"(empty)") == 0) { s.memo[0] = 0; }
         if (wcscmp(s.location, L"(empty)") == 0 ||
             (s.location[0] == L' ' && s.location[1] == 0)) {

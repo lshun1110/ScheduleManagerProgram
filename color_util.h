@@ -12,6 +12,5 @@
 
 void SetColor(int fg, int bg);
 void ResetColor(void);
-void DrawColorBox(int x, int y, int w, int h, int color);
 
 #endif

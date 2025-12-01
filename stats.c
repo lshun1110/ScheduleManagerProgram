@@ -1,4 +1,3 @@
-// stats.c
 #include "common.h"
 #include "stats.h"
 #include "ui_core.h"
@@ -6,7 +5,7 @@
 #include "file_io.h"
 #include "calendar_mgr.h"
 
-#include <stdlib.h> // for malloc and free
+#include <stdlib.h> 
 
 extern User g_current_user;
 

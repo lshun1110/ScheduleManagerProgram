@@ -418,14 +418,12 @@ int FileIO_DeleteShare(int share_id)
     int total = count;
     int found = 0;
 
-    // 1) 기존에 이미 삭제된 레코드 개수 세기
     for (int i = 0; i < count; i++)
     {
         if (shares[i].is_deleted)
             deleted++;
     }
 
-    // 2) 이번에 삭제할 share_id에 is_deleted = 1 표시
     for (int i = 0; i < count; i++)
     {
         if (shares[i].share_id == share_id && !shares[i].is_deleted)
@@ -438,25 +436,21 @@ int FileIO_DeleteShare(int share_id)
     }
 
     if (!found)
-        return 0;   // 해당 ID를 찾지 못한 경우
+        return 0;   
 
-    // 3) compact 여부 결정
-    //    - 삭제된 레코드가 10개 이상이거나
-    //    - 전체의 절반 이상이 삭제 상태이면 압축
     int do_compact = 0;
     if (deleted >= 10 || (total > 0 && deleted * 2 > total))
     {
         do_compact = 1;
     }
 
-    // 4) 파일 전체 다시 쓰기 (조건에 따라 compact 적용)
     FILE* fp = _wfopen(L"shared_calendars.txt", L"w, ccs=UTF-16LE");
     if (!fp)
         return 0;
 
     for (int i = 0; i < count; i++)
     {
-        // compact 모드에서는 삭제된 레코드는 파일에 쓰지 않음
+     
         if (do_compact && shares[i].is_deleted)
             continue;
 

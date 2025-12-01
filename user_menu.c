@@ -1,4 +1,3 @@
-// user_menu.c
 #include "common.h"
 #include "user_menu.h"
 #include "ui_core.h"

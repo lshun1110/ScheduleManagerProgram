@@ -1,4 +1,3 @@
-// share_mgr.h
 #ifndef SHARE_MGR_H
 #define SHARE_MGR_H
 

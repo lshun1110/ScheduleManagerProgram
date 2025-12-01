@@ -1,4 +1,3 @@
-// search.c
 #include "common.h"
 #include "search.h"
 #include "ui_core.h"
@@ -6,7 +5,7 @@
 #include "file_io.h"
 #include "calendar_mgr.h"
 
-#include <stdlib.h> // for malloc/free
+#include <stdlib.h> 
 
 extern User g_current_user;
 
@@ -17,7 +16,7 @@ void Search_ShowDialog(void) {
     Schedule results[100];
     int result_count = 0;
     int searched = 0;
-    int placeholder_cleared = 0;  // 검색창 안내 문구(플레이스홀더) 상태
+    int placeholder_cleared = 0;  
 
     UiRect rect_input = (UiRect){ 25, 8, 60, 1 };
     UiRect rect_search = (UiRect){ 88, 7, 12, 3 };
@@ -37,9 +36,8 @@ void Search_ShowDialog(void) {
             wprintf(L"검색어:");
             draw_box(23, 7, 63, 3);
 
-            // 먼저 검색창 안을 공백으로 싹 밀어버리고
             goto_xy(25, 8);
-            wprintf(L"                                                          "); // 대충 58칸 정도 공백
+            wprintf(L"                                                          "); 
             goto_xy(25, 8);
 
             if (search_query[0]) {
@@ -105,7 +103,6 @@ void Search_ShowDialog(void) {
             need_redraw = 0;
         }
 
-        // 한글 IME 때문에, 입력 받기 전에 항상 커서를 검색창으로 고정
         goto_xy(25 + (int)wcslen(search_query), 8);
         set_cursor_visibility(1);
 

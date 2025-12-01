@@ -18,7 +18,7 @@ int FileIO_AddCalendar(const Calendar* cal);
 int FileIO_UpdateCalendar(const Calendar* cal);
 int FileIO_DeleteCalendar(int calendar_id);
 
-// 일정
+// 일정 - 하나는 이름 다른데서 사용
 int FileIO_LoadSchedules(Schedule* buf, int max_count);
 int FileIO_AddSchedule(const Schedule* sched);
 int FileIO_UpdateSchedule(const Schedule* sched);

@@ -1,4 +1,3 @@
-// ui_core.h
 #ifndef UI_CORE_H
 #define UI_CORE_H
 

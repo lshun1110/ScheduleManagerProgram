@@ -3,28 +3,21 @@
 #include "file_io.h"
 #include "share_mgr.h"
 
-/*
- * Returns all calendars owned by the user as well as calendars shared with the user.
- * Shared calendars are retrieved via ShareMgr_GetSharedCalendars().
- */
 int CalMgr_GetAllCalendars(const wchar_t* user_id, Calendar* buf, int max_count) {
     Calendar all_cals[100];
     int total = FileIO_LoadCalendars(all_cals, 100);
     int result_count = 0;
 
-    // First, add calendars owned by the user
     for (int i = 0; i < total && result_count < max_count; i++) {
         if (wcscmp(all_cals[i].user_id, user_id) == 0 && !all_cals[i].is_deleted) {
             buf[result_count++] = all_cals[i];
         }
     }
 
-    // Next, append calendars shared to this user
     if (result_count < max_count) {
         Calendar shared_cals[100];
         int shared_count = ShareMgr_GetSharedCalendars(user_id, shared_cals, 100);
         for (int i = 0; i < shared_count && result_count < max_count; i++) {
-            // Avoid duplicates: skip if this calendar already added
             int exists = 0;
             for (int j = 0; j < result_count; j++) {
                 if (buf[j].calendar_id == shared_cals[i].calendar_id) {
